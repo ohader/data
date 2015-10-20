@@ -23,7 +23,7 @@ class GenericAspect extends AbstractAspect
         foreach ($this->mapSequencer->getDependencyResolver()->getOuterMostParents() as $outerMostParent) {
             $sequenceMap = $this->createMap($outerMostParent);
             if (!empty($sequenceMap)) {
-                $this->mapSequencer->getOrderedSequence($outerMostParent)->set($sequenceMap);
+                $this->mapSequencer->getOrderedSequence($outerMostParent, true)->set($sequenceMap);
             }
         }
 
