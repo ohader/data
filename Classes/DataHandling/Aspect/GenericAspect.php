@@ -22,8 +22,13 @@ class GenericAspect extends AbstractAspect
     public function process() {
         foreach ($this->mapSequencer->getDependencyResolver()->getOuterMostParents() as $outerMostParent) {
             $sequenceMap = $this->createMap($outerMostParent);
-            if (!empty($sequenceMap)) {
+            if (empty($sequenceMap)) {
+                continue;
+            }
+            if (count($outerMostParent->getNestedChildren()) > 0) {
                 $this->mapSequencer->getOrderedSequence($outerMostParent, true)->set($sequenceMap);
+            } else {
+                $this->mapSequencer->getFinalSequence()->mergeToEnd($sequenceMap);
             }
         }
 
