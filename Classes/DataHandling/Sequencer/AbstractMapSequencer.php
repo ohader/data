@@ -153,9 +153,18 @@ abstract class AbstractMapSequencer
             return $this->dependencyResolver;
         }
 
-        $this->dependencyResolver = GeneralUtility::makeInstance('TYPO3\\CMS\\Version\\Dependency\\DependencyResolver');
+        $this->dependencyResolver = $this->createDependencyResolver();
 
         return $this->dependencyResolver;
+    }
+
+    /**
+     * @return DependencyResolver
+     */
+    public function createDependencyResolver() {
+        /** @var DependencyResolver $dependencyResolver */
+        $dependencyResolver = GeneralUtility::makeInstance('TYPO3\\CMS\\Version\\Dependency\\DependencyResolver');
+        return $dependencyResolver;
     }
 
     /**

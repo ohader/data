@@ -45,24 +45,34 @@ class GenericAspect extends AbstractAspect
 
         /** @var Dependency\ElementEntity $nestedElement */
         foreach ($resolver->getNestedElements($parentElement) as $nestedElement) {
-            $relevantItems = array_intersect_key(
-                $nestedElement->getDataValue('itemCollection'),
-                $this->getRelevantItems()
-            );
+            $tableName = $nestedElement->getTable();
+            $elementId = $nestedElement->getId();
 
+            // Skip if element was not set in initial map
+            if (empty($this->map[$tableName][$elementId])) {
+                continue;
+            }
+
+            $itemCollection = $nestedElement->getDataValue('itemCollection');
+            // Skip if item collection is empty
+            if (empty($itemCollection)) {
+                continue;
+            }
+
+            $relevantItems = $this->processRelevantItems($itemCollection);
+            // Skip if relevant items are empty
             if (empty($relevantItems)) {
                 continue;
             }
 
-            $tableName = $nestedElement->getTable();
-            $elementId = $nestedElement->getId();
+            // Add to local sequence map
             $sequenceMap[$tableName][$elementId] = $relevantItems;
-
+            // Remove from initial sequence map
             $this->map[$tableName][$elementId] = array_diff_key(
                 $this->map[$tableName][$elementId],
                 $this->getRelevantItems()
             );
-
+            // Purge from initial map
             if (empty($this->map[$tableName][$elementId])) {
                 unset($this->map[$tableName][$elementId]);
             }

@@ -17,7 +17,6 @@ namespace TYPO3Incubator\Data\DataHandling\Aspect;
 use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\DataHandling\DataHandler;
-use TYPO3\CMS\Version\Dependency\DependencyResolver;
 use TYPO3Incubator\Data\DataHandling\Sequencer\AbstractMapSequencer;
 
 abstract class AbstractAspect implements SingletonInterface
@@ -96,6 +95,17 @@ abstract class AbstractAspect implements SingletonInterface
             $this->relevantItemNames
         );
         return $this->relevantItemNames;
+    }
+
+    /**
+     * @param array $itemCollection
+     * @return array
+     */
+    protected function processRelevantItems(array $itemCollection) {
+        return array_intersect_key(
+            $itemCollection,
+            $this->getRelevantItems()
+        );
     }
 
 }
