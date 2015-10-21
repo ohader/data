@@ -34,6 +34,9 @@ class CommandMapSequencer extends AbstractMapSequencer
         );
         $this->addAspect(
             Aspect\LocalizeAspect::create()
+                ->setRelevantItemNames(array(
+                    'localize'
+                ))
         );
     }
 
