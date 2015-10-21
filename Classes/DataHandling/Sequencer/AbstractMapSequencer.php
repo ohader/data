@@ -179,7 +179,7 @@ abstract class AbstractMapSequencer
                 if (!MathUtility::canBeInterpretedAsInteger($elementId)) {
                     continue;
                 }
-                $this->getDependencyResolver()->addElement($tableName, $elementId, array('itemCollection', $itemCollection));
+                $this->getDependencyResolver()->addElement($tableName, $elementId, array('itemCollection' => $itemCollection));
             }
         }
         return count($this->getDependencyResolver()->getElements());
