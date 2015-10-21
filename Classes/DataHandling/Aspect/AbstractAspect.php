@@ -108,4 +108,22 @@ abstract class AbstractAspect implements SingletonInterface
         );
     }
 
+    /**
+     * @param array $map
+     * @return array
+     */
+    protected function purgeMap(array $map) {
+        foreach ($map as $tableName => $elementIdCollection) {
+            foreach ($elementIdCollection as $elementId => $itemCollection) {
+                if (empty($itemCollection)) {
+                    unset($map[$tableName][$elementId]);
+                }
+            }
+            if (empty($map[$tableName])) {
+                unset($map[$tableName]);
+            }
+        }
+        return $map;
+    }
+
 }

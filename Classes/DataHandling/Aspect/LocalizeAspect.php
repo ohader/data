@@ -60,6 +60,8 @@ class LocalizeAspect extends AbstractAspect
             }
         }
 
+        // Purge from initial map
+        $sequenceMap = $this->purgeMap($sequenceMap);
         $sequence->set($sequenceMap);
     }
 

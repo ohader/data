@@ -72,12 +72,10 @@ class GenericAspect extends AbstractAspect
                 $this->map[$tableName][$elementId],
                 $this->getRelevantItems()
             );
-            // Purge from initial map
-            if (empty($this->map[$tableName][$elementId])) {
-                unset($this->map[$tableName][$elementId]);
-            }
         }
 
+        // Purge from initial map
+        $sequenceMap = $this->purgeMap($sequenceMap);
         return $sequenceMap;
     }
 
