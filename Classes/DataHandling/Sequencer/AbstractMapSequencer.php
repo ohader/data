@@ -117,7 +117,7 @@ abstract class AbstractMapSequencer
     public function getSequences() {
         return array_merge(
             $this->orderedSequences->getArrayCopy(),
-            $this->finalSequence
+            array($this->finalSequence)
         );
     }
 
