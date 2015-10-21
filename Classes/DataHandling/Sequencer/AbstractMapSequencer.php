@@ -136,6 +136,8 @@ abstract class AbstractMapSequencer
 
     abstract protected function prepare();
 
+    abstract protected function processSequences();
+
     abstract protected function finish();
 
     /**
@@ -191,7 +193,5 @@ abstract class AbstractMapSequencer
             $aspect->process();
         }
     }
-
-    abstract protected function processSequences();
 
 }

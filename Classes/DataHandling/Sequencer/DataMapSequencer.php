@@ -17,8 +17,24 @@ namespace TYPO3Incubator\Data\DataHandling\Sequencer;
 class DataMapSequencer extends AbstractMapSequencer
 {
 
-    public function process() {
+    public function process()
+    {
         return $this;
+    }
+
+    protected function prepare()
+    {
+        // TODO: Implement prepare() method.
+    }
+
+    protected function processSequences()
+    {
+        // TODO: Implement processSequences() method.
+    }
+
+    protected function finish()
+    {
+        // TODO: Implement finish() method.
     }
 
 }
