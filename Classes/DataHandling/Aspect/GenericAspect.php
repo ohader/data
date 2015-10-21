@@ -20,7 +20,7 @@ class GenericAspect extends AbstractAspect
 {
 
     public function process() {
-        foreach ($this->mapSequencer->getDependencyResolver()->getOuterMostParents() as $outerMostParent) {
+        foreach ($this->getSortedOuterMostParents() as $outerMostParent) {
             $sequenceMap = $this->createMap($outerMostParent);
             if (empty($sequenceMap)) {
                 continue;
@@ -32,6 +32,7 @@ class GenericAspect extends AbstractAspect
             }
         }
 
+        $this->map = $this->purgeMap($this->map);
         $this->mapSequencer->setMap($this->map);
     }
 

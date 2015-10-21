@@ -17,6 +17,7 @@ namespace TYPO3Incubator\Data\DataHandling\Aspect;
 use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\DataHandling\DataHandler;
+use TYPO3\CMS\Version\Dependency;
 use TYPO3Incubator\Data\DataHandling\Sequencer\AbstractMapSequencer;
 
 abstract class AbstractAspect implements SingletonInterface
@@ -124,6 +125,27 @@ abstract class AbstractAspect implements SingletonInterface
             }
         }
         return $map;
+    }
+
+    /**
+     * @return array|Dependency\ElementEntity[]
+     */
+    protected function getSortedOuterMostParents() {
+        $outerMostParents = $this->mapSequencer->getDependencyResolver()->getOuterMostParents();
+        uasort($outerMostParents, array($this, 'sortByOriginalElements'));
+        return $outerMostParents;
+    }
+
+    /**
+     * @param Dependency\ElementEntity $first
+     * @param Dependency\ElementEntity $second
+     * @return int
+     */
+    protected function sortByOriginalElements(Dependency\ElementEntity $first, Dependency\ElementEntity $second) {
+        $originalElements = $this->mapSequencer->getDependencyResolver()->getElements();
+        $firstIndex = array_search($first, $originalElements);
+        $secondIndex = array_search($second, $originalElements);
+        return ($firstIndex < $secondIndex ? -1 : 1);
     }
 
 }

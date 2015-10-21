@@ -23,7 +23,7 @@ class LocalizeAspect extends AbstractAspect
 {
 
     public function process() {
-        foreach ($this->mapSequencer->getDependencyResolver()->getOuterMostParents() as $outerMostParent) {
+        foreach ($this->getSortedOuterMostParents() as $outerMostParent) {
             $sequence = $this->mapSequencer->getOrderedSequence($outerMostParent);
             if ($sequence !== null) {
                 $this->adjust($outerMostParent, $sequence);
