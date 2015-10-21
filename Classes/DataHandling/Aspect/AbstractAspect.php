@@ -95,7 +95,8 @@ abstract class AbstractAspect implements SingletonInterface
             $this->relevantItemNames,
             $this->relevantItemNames
         );
-        return $this->relevantItemNames;
+
+        return $this->relevantItems;
     }
 
     /**
