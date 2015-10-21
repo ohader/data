@@ -130,24 +130,24 @@ class LocalizeAspect extends AbstractAspect
      */
     protected function shallRemoveChildElement(Dependency\ReferenceEntity $parentReference, Sequence $sequence) {
         $sequenceMap = $sequence->get();
-        $parentElement = $parentReference->getElement();
         $fieldConfiguration = $this->resolveFieldConfiguration($parentReference);
 
-        // If children shall not be localized automatically with parent using the selective mode
-        if (empty($fieldConfiguration['localizeReferencesAtParentLocalization'])
-            && empty($fieldConfiguration['behaviour']['localizeChildrenAtParentLocalization'])
-            && (empty($fieldConfiguration['behaviour']['localizationMode'])
-                || $fieldConfiguration['behaviour']['localizationMode'] !== 'select')
+        $parentTableName = $parentReference->getElement()->getTable();
+        $parentId = $parentReference->getElement()->getId();
+
+        // If parent is part of the initial map and
+        // children shall be localized automatically with parent using the selective mode
+        if (!empty($sequenceMap[$parentTableName][$parentId]['localize'])
+            && (
+                !empty($fieldConfiguration['behaviour']['localizeChildrenAtParentLocalization'])
+                && !empty($fieldConfiguration['behaviour']['localizationMode'])
+                && $fieldConfiguration['behaviour']['localizationMode'] === 'select'
+            )
         ) {
-            return false;
+            return true;
         }
 
-        // If parent is not part of the initial map
-        if (empty($sequenceMap[$parentElement->getTable()][$parentReference->getField()]['localize'])) {
-            return false;
-        }
-
-        return true;
+        return false;
     }
 
     /**
@@ -162,8 +162,10 @@ class LocalizeAspect extends AbstractAspect
      */
     protected function shallLocalizeForParentElement(Dependency\ReferenceEntity $parentReference, Dependency\ElementEntity $childElement, Sequence $sequence) {
         $sequenceMap = $sequence->get();
-        $parentElement = $parentReference->getElement();
         $fieldConfiguration = $this->resolveFieldConfiguration($parentReference);
+
+        $parentTableName = $parentReference->getElement()->getTable();
+        $parentId = $parentReference->getElement()->getId();
 
         // If child shall be removed instead
         // (just to ensure the process flow has not mixed up)
@@ -181,14 +183,14 @@ class LocalizeAspect extends AbstractAspect
         $itemCollection = $childElement->getDataValue('itemCollection');
         $language = (int)$itemCollection['localize'];
         $parentLocalizationRecord = BackendUtility::getRecordLocalization(
-            $parentReference->getElement()->getTable(),
-            $parentReference->getElement()->getId(),
+            $parentTableName,
+            $parentId,
             $language
         );
 
         // If neither parent localization does exist nor is parent part of the initial map
         if ($parentLocalizationRecord === false &&
-            empty($sequenceMap[$parentElement->getTable()][$parentReference->getField()]['localize'])) {
+            empty($sequenceMap[$parentTableName][$parentId]['localize'])) {
             return false;
         }
 
