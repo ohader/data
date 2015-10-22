@@ -236,6 +236,13 @@ class LocalizeAspect extends AbstractAspect
 
         $parentTableName = $parentReference->getElement()->getTable();
         $parentId = $parentReference->getElement()->getId();
+        $childTableName = $childElement->getTable();
+        $childId = $childElement->getId();
+
+        // Child element shall not be localized
+        if (empty($sequence[$childTableName][$childId]['localize'])) {
+            return false;
+        }
 
         // If children shall not be localized using the selective mode
         if (empty($fieldConfiguration['behaviour']['localizationMode'])
