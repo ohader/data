@@ -134,6 +134,30 @@ abstract class AbstractActionTestCase extends AbstractDataHandlerActionTestCase 
 		$this->dataHandler->process_cmdmap();
 	}
 
+	protected function localizeChildElementWithoutAutomation() {
+		$GLOBALS['TCA'][self::TABLE_Content]['columns'][self::FIELD_ContentHotel]['config']['behaviour']['localizeChildrenAtParentLocalization'] = false;
+		$GLOBALS['TCA'][self::TABLE_Hotel]['columns'][self::FIELD_HotelOffer]['config']['behaviour']['localizeChildrenAtParentLocalization'] = false;
+		$GLOBALS['TCA'][self::TABLE_Offer]['columns'][self::FIELD_OfferPrice]['config']['behaviour']['localizeChildrenAtParentLocalization'] = false;
+
+		static::localizeChildElement();
+	}
+
+	protected function localizeChildElementWithAutomation() {
+		$GLOBALS['TCA'][self::TABLE_Content]['columns'][self::FIELD_ContentHotel]['config']['behaviour']['localizeChildrenAtParentLocalization'] = true;
+		$GLOBALS['TCA'][self::TABLE_Hotel]['columns'][self::FIELD_HotelOffer]['config']['behaviour']['localizeChildrenAtParentLocalization'] = true;
+		$GLOBALS['TCA'][self::TABLE_Offer]['columns'][self::FIELD_OfferPrice]['config']['behaviour']['localizeChildrenAtParentLocalization'] = true;
+
+		static::localizeChildElement();
+	}
+
+	protected function localizeChildElement() {
+		$commandMap = array();
+		$commandMap[static::TABLE_Hotel][static::VALUE_HotelIdFirst]['localize'] = static::VALUE_LanguageId;
+
+		$this->dataHandler->start(array(), $commandMap);
+		$this->dataHandler->process_cmdmap();
+	}
+
 	/**
 	 * @return \TYPO3\CMS\Core\DataHandling\DataHandler
 	 */
