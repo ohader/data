@@ -71,7 +71,7 @@ class DataHandlerHook implements SingletonInterface
         try {
             Sequencer\CommandMapSequencer::create()->process($dataHandler);
         } catch(ElementException $exception) {
-            $dataHandler->datamap = array();
+            $dataHandler->cmdmap = array();
             $dataHandler->newlog2($exception->getMessage(), $exception->getTableName(), $exception->getId(), false, 1);
         }
         $this->active = false;
