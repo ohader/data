@@ -17,7 +17,7 @@ namespace TYPO3Incubator\Data\DataHandling\Model;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
 
-class Sequence
+class Sequence extends \ArrayObject
 {
 
     /**
@@ -27,39 +27,49 @@ class Sequence
         return GeneralUtility::makeInstance(get_called_class());
     }
 
-    /**
-     * @var array
-     */
-    protected $data = array();
-
-    public function set(array $data) {
-        $this->data = $data;
+    public function purge() {
+        foreach ($this as $tableName => $elementIdCollection) {
+            foreach ($elementIdCollection as $elementId => $itemCollection) {
+                if (empty($itemCollection)) {
+                    unset($this[$tableName][$elementId]);
+                }
+            }
+            if (empty($this[$tableName])) {
+                unset($this[$tableName]);
+            }
+        }
     }
 
     /**
-     * @return array
+     * @return bool
      */
-    public function get() {
-        return $this->data;
-    }
-
     public function isEmpty() {
-        return empty($this->data);
+        return (count($this) === 0);
     }
 
     /**
-     * @param array $data
+     * @param Sequence $data
      */
-    public function mergeToEnd(array $data) {
-        ArrayUtility::mergeRecursiveWithOverrule($this->data, $data);
+    public function replace(Sequence $data) {
+        $this->exchangeArray($data->getArrayCopy());
     }
 
     /**
-     * @param array $data
+     * @param Sequence $data
      */
-    public function mergeToFront(array $data) {
-        ArrayUtility::mergeRecursiveWithOverrule($data, $this->data);
-        $this->data = $data;
+    public function mergeToEnd(Sequence $data) {
+        $target = $this->getArrayCopy();
+        ArrayUtility::mergeRecursiveWithOverrule($target, $data->getArrayCopy());
+        $this->exchangeArray($target);
+    }
+
+    /**
+     * @param Sequence $data
+     */
+    public function mergeToFront(Sequence $data) {
+        $target = $data->getArrayCopy();
+        ArrayUtility::mergeRecursiveWithOverrule($target, $this->getArrayCopy());
+        $this->exchangeArray($target);
     }
 
 }

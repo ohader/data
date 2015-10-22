@@ -115,17 +115,26 @@ abstract class AbstractMapSequencer
      * @return Sequence[]
      */
     public function getSequences() {
-        return array_merge(
+        /** @var Sequence[] $sequences */
+        $sequences = array_merge(
             $this->orderedSequences->getArrayCopy(),
             array('final' => $this->finalSequence)
         );
+
+        foreach ($sequences as $identifier => $sequence) {
+            if ($sequence->isEmpty()) {
+                unset($sequences[$identifier]);
+            }
+        }
+
+        return $sequences;
     }
 
     public function process(DataHandler $dataHandler) {
         $this->dataHandler = $dataHandler;
         $this->prepare();
 
-        if ($this->collectElements() > 1) {
+        if ($this->collectElements() > 0) {
             $this->processAspects();
             $this->processSequences();
             $this->finish();

@@ -49,7 +49,7 @@ class CommandMapSequencer extends AbstractMapSequencer
             if ($sequence->isEmpty()) {
                 continue;
             }
-            $this->dataHandler->start(array(), $sequence->get());
+            $this->dataHandler->start(array(), $sequence->getArrayCopy());
             $this->dataHandler->process_cmdmap();
         }
     }

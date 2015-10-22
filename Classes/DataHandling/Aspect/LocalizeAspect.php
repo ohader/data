@@ -18,6 +18,7 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Version\Dependency;
 use TYPO3Incubator\Data\DataHandling\Model\Sequence;
+use TYPO3Incubator\Data\DataHandling\Exception\DependencyException;
 
 class LocalizeAspect extends AbstractAspect
 {
@@ -36,33 +37,99 @@ class LocalizeAspect extends AbstractAspect
      * @param Sequence $sequence
      */
     protected function adjust(Dependency\ElementEntity $parentElement, Sequence $sequence) {
-        $sequenceMap = $sequence->get();
+        $candidateElements = $this->determineCandidateElements($parentElement);
+        $reverseCandidateElements = array_reverse($candidateElements);
 
-        foreach ($this->determineCandidateElements($parentElement) as $candidateElement) {
-            $parentReference = $this->getInlineParentReference($candidateElement);
-            // Skip if no inline parent reference was found
-            if (empty($parentReference)) {
-                continue;
-            }
-
-            $candidateTableName = $candidateElement->getTable();
-            $candidateId = $candidateElement->getId();
-
-            if ($this->shallRemoveChildElement($parentReference, $sequence)) {
-                unset($sequenceMap[$candidateTableName][$candidateId]['localize']);
-            } elseif ($this->shallLocalizeForParentElement($parentReference, $candidateElement, $sequence)) {
-                $parentTableName = $parentReference->getElement()->getTable();
-                $parentId = $parentReference->getElement()->getId();
-
-                $sequenceMap[$parentTableName][$parentId]['inlineLocalizeSynchronize']
-                    = $parentReference->getField() . ',' . $candidateId;
-                unset($sequenceMap[$candidateTableName][$candidateId]['localize']);
-            }
+        // Validate commands
+        foreach ($candidateElements as $candidateElement) {
+            $this->validate($candidateElement, $sequence);
         }
 
-        // Purge from initial map
-        $sequenceMap = $this->purgeMap($sequenceMap);
-        $sequence->set($sequenceMap);
+        // Process child element bottom-up since they might rely
+        // on process instructions that are defined for the parent
+        foreach ($reverseCandidateElements as $candidateElement) {
+            $this->reduce($candidateElement, $sequence);
+            $this->correct($candidateElement, $sequence);
+        }
+
+        // Purge sequence
+        $sequence->purge();
+    }
+
+    /**
+     * @param Dependency\ElementEntity $candidateElement
+     * @param Sequence $sequence
+     */
+    protected function reduce(Dependency\ElementEntity $candidateElement, Sequence $sequence) {
+        $parentReference = $this->getInlineParentReference($candidateElement);
+        // Skip if no inline parent reference was found
+        if (empty($parentReference)) {
+            return;
+        }
+
+        $candidateTableName = $candidateElement->getTable();
+        $candidateId = $candidateElement->getId();
+
+        if ($this->shallRemoveChildElement($parentReference, $sequence)) {
+            unset($sequence[$candidateTableName][$candidateId]['localize']);
+        }
+
+        // Purge sequence
+        $sequence->purge();
+    }
+
+    /**
+     * @param Dependency\ElementEntity $candidateElement
+     * @param Sequence $sequence
+     */
+    protected function correct(Dependency\ElementEntity $candidateElement, Sequence $sequence) {
+        $parentReference = $this->getInlineParentReference($candidateElement);
+        // Skip if no inline parent reference was found
+        if (empty($parentReference)) {
+            return;
+        }
+
+        $candidateTableName = $candidateElement->getTable();
+        $candidateId = $candidateElement->getId();
+
+        if ($this->shallLocalizeForParentElement($parentReference, $candidateElement, $sequence)) {
+            $parentTableName = $parentReference->getElement()->getTable();
+            $parentId = $parentReference->getElement()->getId();
+
+            if (empty($sequence[$parentTableName][$parentId]['inlineLocalizeSynchronize'])) {
+                $itemCollection = $candidateElement->getDataValue('itemCollection');
+                $sequence[$parentTableName][$parentId]['inlineLocalizeSynchronize'] = array(
+                    'field' => $parentReference->getField(),
+                    'language' => $itemCollection['localize'],
+                    'ids' => array(),
+                );
+            }
+
+            $sequence[$parentTableName][$parentId]['inlineLocalizeSynchronize']['ids'][] = $candidateId;
+            unset($sequence[$candidateTableName][$candidateId]['localize']);
+        }
+
+        // Purge sequence
+        $sequence->purge();
+    }
+
+    /**
+     * @param Dependency\ElementEntity $candidateElement
+     * @param Sequence $sequence
+     */
+    protected function validate(Dependency\ElementEntity $candidateElement, Sequence $sequence) {
+        $parentReference = $this->getInlineParentReference($candidateElement);
+        // Skip if no inline parent reference was found
+        if (empty($parentReference)) {
+            return;
+        }
+
+        if ($this->shallFail($parentReference, $candidateElement, $sequence)) {
+            $exception = new DependencyException('Element "' . $candidateElement . '" cannot be localized independently');
+            $exception->setTableName($candidateElement->getTable());
+            $exception->setId($candidateElement->getId());
+            throw $exception;
+        }
     }
 
     /**
@@ -129,7 +196,6 @@ class LocalizeAspect extends AbstractAspect
      * @return bool
      */
     protected function shallRemoveChildElement(Dependency\ReferenceEntity $parentReference, Sequence $sequence) {
-        $sequenceMap = $sequence->get();
         $fieldConfiguration = $this->resolveFieldConfiguration($parentReference);
 
         $parentTableName = $parentReference->getElement()->getTable();
@@ -137,7 +203,7 @@ class LocalizeAspect extends AbstractAspect
 
         // If parent is part of the initial map and
         // children shall be localized automatically with parent using the selective mode
-        if (!empty($sequenceMap[$parentTableName][$parentId]['localize'])
+        if (!empty($sequence[$parentTableName][$parentId]['localize'])
             && (
                 !empty($fieldConfiguration['behaviour']['localizeChildrenAtParentLocalization'])
                 && !empty($fieldConfiguration['behaviour']['localizationMode'])
@@ -146,6 +212,11 @@ class LocalizeAspect extends AbstractAspect
         ) {
             return true;
         }
+
+        // If parent is localized already and generic
+        // inlineLocalizeSynchronize is activated for that field
+        #if (!empty($sequence[$parentTableName][$parentId]['localize'])
+        #)
 
         return false;
     }
@@ -161,17 +232,10 @@ class LocalizeAspect extends AbstractAspect
      * @return bool
      */
     protected function shallLocalizeForParentElement(Dependency\ReferenceEntity $parentReference, Dependency\ElementEntity $childElement, Sequence $sequence) {
-        $sequenceMap = $sequence->get();
         $fieldConfiguration = $this->resolveFieldConfiguration($parentReference);
 
         $parentTableName = $parentReference->getElement()->getTable();
         $parentId = $parentReference->getElement()->getId();
-
-        // If child shall be removed instead
-        // (just to ensure the process flow has not mixed up)
-        if ($this->shallRemoveChildElement($parentReference, $sequence)) {
-            return false;
-        }
 
         // If children shall not be localized using the selective mode
         if (empty($fieldConfiguration['behaviour']['localizationMode'])
@@ -189,8 +253,48 @@ class LocalizeAspect extends AbstractAspect
         );
 
         // If neither parent localization does exist nor is parent part of the initial map
-        if ($parentLocalizationRecord === false &&
-            empty($sequenceMap[$parentTableName][$parentId]['localize'])) {
+        if (empty($parentLocalizationRecord) &&
+            empty($sequence[$parentTableName][$parentId]['localize'])) {
+            return false;
+        }
+
+        return true;
+    }
+
+    protected function shallFail(Dependency\ReferenceEntity $parentReference, Dependency\ElementEntity $childElement, Sequence $sequence) {
+        $parentTableName = $parentReference->getElement()->getTable();
+        $parentId = $parentReference->getElement()->getId();
+        $childTableName = $childElement->getTable();
+        $childId = $childElement->getId();
+
+        // Child element shall not be localized
+        if (empty($sequence[$childTableName][$childId]['localize'])) {
+            return false;
+        }
+
+        // Parent element gets localized
+        if (!empty($sequence[$parentTableName][$parentId]['localize'])) {
+            return false;
+        }
+
+        // Modernized inlineLocalizeSynchronize commands
+        if (!empty($sequence[$parentTableName][$parentId]['inlineLocalizeSynchronize'])
+            && is_array($sequence[$parentTableName][$parentId]['inlineLocalizeSynchronize'])
+            && $sequence[$parentTableName][$parentId]['inlineLocalizeSynchronize']['field'] === $parentReference->getField()
+            && in_array($childId, $sequence[$parentTableName][$parentId]['inlineLocalizeSynchronize']['ids'])
+        ) {
+            return false;
+        }
+
+        // Legacy inlineLocalizeSynchronize commands
+        if (!empty($sequence[$parentTableName][$parentId]['inlineLocalizeSynchronize'])
+            && is_string($sequence[$parentTableName][$parentId]['inlineLocalizeSynchronize'])
+            && in_array($sequence[$parentTableName][$parentId]['inlineLocalizeSynchronize'], array(
+                $parentReference->getField() . ',localize',
+                $parentReference->getField() . ',synchronize',
+                $parentReference->getField() . ',' . $childId,
+            ))
+        ) {
             return false;
         }
 

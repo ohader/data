@@ -15,33 +15,33 @@ namespace TYPO3Incubator\Data\DataHandling\Aspect;
  */
 
 use TYPO3\CMS\Version\Dependency;
+use TYPO3Incubator\Data\DataHandling\Model\Sequence;
 
 class GenericAspect extends AbstractAspect
 {
 
     public function process() {
         foreach ($this->getSortedOuterMostParents() as $outerMostParent) {
-            $sequenceMap = $this->createMap($outerMostParent);
-            if (empty($sequenceMap)) {
+            $sequence = $this->createSequence($outerMostParent);
+            if ($sequence->isEmpty()) {
                 continue;
             }
             if (count($outerMostParent->getNestedChildren()) > 0) {
-                $this->mapSequencer->getOrderedSequence($outerMostParent, true)->set($sequenceMap);
+                $this->mapSequencer->getOrderedSequence($outerMostParent, true)->mergeToFront($sequence);
             } else {
-                $this->mapSequencer->getFinalSequence()->mergeToEnd($sequenceMap);
+                $this->mapSequencer->getFinalSequence()->mergeToEnd($sequence);
             }
         }
 
-        $this->map = $this->purgeMap($this->map);
         $this->mapSequencer->setMap($this->map);
     }
 
     /**
      * @param Dependency\ElementEntity $parentElement
-     * @return array
+     * @return Sequence
      */
-    protected function createMap(Dependency\ElementEntity $parentElement) {
-        $sequenceMap = array();
+    protected function createSequence(Dependency\ElementEntity $parentElement) {
+        $sequence = Sequence::create();
         $resolver = $this->mapSequencer->getDependencyResolver();
 
         /** @var Dependency\ElementEntity $nestedElement */
@@ -66,9 +66,9 @@ class GenericAspect extends AbstractAspect
                 continue;
             }
 
-            // Add to local sequence map
-            $sequenceMap[$tableName][$elementId] = $relevantItems;
-            // Remove from initial sequence map
+            // Add to local sequence
+            $sequence[$tableName][$elementId] = $relevantItems;
+            // Remove from initial  map
             $this->map[$tableName][$elementId] = array_diff_key(
                 $this->map[$tableName][$elementId],
                 $this->getRelevantItems()
@@ -76,8 +76,8 @@ class GenericAspect extends AbstractAspect
         }
 
         // Purge from initial map
-        $sequenceMap = $this->purgeMap($sequenceMap);
-        return $sequenceMap;
+        $this->map = $this->purgeMap($this->map);
+        return $sequence;
     }
 
 }
