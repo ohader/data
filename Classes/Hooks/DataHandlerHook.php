@@ -17,6 +17,7 @@ namespace TYPO3Incubator\Data\Hooks;
 use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\DataHandling\DataHandler;
 use TYPO3Incubator\Data\DataHandling\Sequencer;
+use TYPO3Incubator\Data\DataHandling\Exception\ElementException;
 
 class DataHandlerHook implements SingletonInterface
 {
@@ -49,7 +50,12 @@ class DataHandlerHook implements SingletonInterface
         }
 
         $this->active = true;
-        Sequencer\DataMapSequencer::create()->process($dataHandler);
+        try {
+            Sequencer\DataMapSequencer::create()->process($dataHandler);
+        } catch(ElementException $exception) {
+            $dataHandler->datamap = array();
+            $dataHandler->newlog2($exception->getMessage(), $exception->getTableName(), $exception->getId(), false, 1);
+        }
         $this->active = false;
     }
 
@@ -62,7 +68,12 @@ class DataHandlerHook implements SingletonInterface
         }
 
         $this->active = true;
-        Sequencer\CommandMapSequencer::create()->process($dataHandler);
+        try {
+            Sequencer\CommandMapSequencer::create()->process($dataHandler);
+        } catch(ElementException $exception) {
+            $dataHandler->datamap = array();
+            $dataHandler->newlog2($exception->getMessage(), $exception->getTableName(), $exception->getId(), false, 1);
+        }
         $this->active = false;
     }
 
