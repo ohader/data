@@ -22,14 +22,15 @@ class CommandMapSequencerTest extends AbstractActionTestCase
 {
 
     /**
-   	 * @var string
-   	 */
-   	protected $assertionDataSetDirectory = 'EXT:data/Tests/Functional/DataHandling/Sequencer/DataSet/CommandMapSequencer/';
+     * @var string
+     */
+    protected $assertionDataSetDirectory = 'EXT:data/Tests/Functional/DataHandling/Sequencer/DataSet/CommandMapSequencer/';
 
     /**
      * @test
      */
-    public function localizeContentElement() {
+    public function localizeContentElement()
+    {
         parent::localizeContentElement();
         $this->assertAssertionDataSet('localizeContentElement');
     }
@@ -37,7 +38,8 @@ class CommandMapSequencerTest extends AbstractActionTestCase
     /**
      * @test
      */
-    public function localizeContentElementsWithChildrenWithoutAutomation() {
+    public function localizeContentElementsWithChildrenWithoutAutomation()
+    {
         parent::localizeContentElementsWithChildrenWithoutAutomation();
         $this->assertAssertionDataSet('localizeContentElementsWithChildrenWithoutAutomation');
     }
@@ -45,7 +47,8 @@ class CommandMapSequencerTest extends AbstractActionTestCase
     /**
      * @test
      */
-    public function localizeContentElementsWithChildrenWithAutomation() {
+    public function localizeContentElementsWithChildrenWithAutomation()
+    {
         parent::localizeContentElementsWithChildrenWithAutomation();
         $this->assertAssertionDataSet('localizeContentElementsWithChildrenWithAutomation');
     }
@@ -53,7 +56,8 @@ class CommandMapSequencerTest extends AbstractActionTestCase
     /**
      * @test
      */
-    public function localizeChildElementWithoutAutomation() {
+    public function localizeChildElementWithoutAutomation()
+    {
         $this->expectedErrorLogEntries = 1;
         parent::localizeChildElementWithoutAutomation();
         $this->assertAssertionDataSet('localizeChildElementWithoutAutomation');
@@ -62,7 +66,8 @@ class CommandMapSequencerTest extends AbstractActionTestCase
     /**
      * @test
      */
-    public function localizeChildElementWithAutomation() {
+    public function localizeChildElementWithAutomation()
+    {
         $this->expectedErrorLogEntries = 1;
         parent::localizeChildElementWithAutomation();
         $this->assertAssertionDataSet('localizeChildElementWithAutomation');
