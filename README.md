@@ -22,3 +22,8 @@ Several additions for handling data in TYPO3 CMS
 ### Related
 
 * [Resolve FlexForm fields in version dependency resolver](https://review.typo3.org/#/c/44202/ "Forge #70921")
+
+## Open Tasks
+
+* integrate handling for FlexForm data in dependency resolving
+* switch to TCA meta-models for resolving possible dependencies instead of relying on the reference index
