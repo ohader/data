@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/ohader/data.svg?branch=master)](https://travis-ci.org/ohader/data)
+
 # TYPO3 CMS Data Handling Extension
 
 Several additions for handling data in TYPO3 CMS
