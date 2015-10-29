@@ -17,7 +17,8 @@ Several additions for handling data in TYPO3 CMS
 
 ### Required
 
-* [Enhance inlineLocalizeSynchronize command handling](https://review.typo3.org/#/c/44232/ "Forge #xxxxx")
+* [Allow to define multiple DataHandler commands for one element](https://review.typo3.org/#/q/I473ea0de3789d77cb913ad64a26a666ab73c2a52,n,z)
+* [Allow to define multiple inlineLocalizeSynchronize commands](https://review.typo3.org/#/q/Ic7e1293a44047bfd69017e240dd8563a1dffa423,n,z)
 
 ### Related
 
