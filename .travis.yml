@@ -46,7 +46,7 @@ before_script:
     ln -s typo3_src/index.php index.php;
     ln -s typo3_src/typo3 typo3;
     cd typo3_src;
-    composer install;
+    composer install -o;
     if [ "$TYPO3_VERSION" == "TYPO3_6-2" ]; then
       git fetch https://review.typo3.org/Packages/TYPO3.CMS refs/changes/51/44351/1 && git cherry-pick FETCH_HEAD;
       git fetch https://review.typo3.org/Packages/TYPO3.CMS refs/changes/32/44232/3 && git cherry-pick FETCH_HEAD;
