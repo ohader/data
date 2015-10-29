@@ -29,10 +29,19 @@ class CommandMapSequencerTest extends AbstractActionTestCase
     /**
      * @test
      */
-    public function localizeContentElement()
+    public function localizeContentElementWithoutAutomation()
     {
-        parent::localizeContentElement();
-        $this->assertAssertionDataSet('localizeContentElement');
+        parent::localizeContentElementWithoutAutomation();
+        $this->assertAssertionDataSet('localizeContentElementWithoutAutomation');
+    }
+
+    /**
+     * @test
+     */
+    public function localizeContentElementWithAutomation()
+    {
+        parent::localizeContentElementWithAutomation();
+        $this->assertAssertionDataSet('localizeContentElementWithAutomation');
     }
 
     /**
